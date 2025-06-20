@@ -7,36 +7,48 @@ export const TMDB_CONFIG = {
   },
 };
 
-const url =
-  "https://api.themoviedb.org/3/keyword/keyword_id/movies?include_adult=false&language=en-US&page=1";
-const options = {
-  method: "GET",
-  headers: {
-    accept: "application/json",
-    Authorization:
-      "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJjNTg2M2U2NWQ2NmJmOTliMTc2NDlkMzg3ZTBjNDE0NCIsIm5iZiI6MTc0ODg1ODYyMi4wOTIsInN1YiI6IjY4M2Q3NmZlMDUzNjE5YTdhZGZkYjQ2MSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.AcyOaZe0WitC9SnCPv-w5kjdrGckMpNCcJnMwDyz2e4",
-  },
-};
-
-export const fetchMovies = async ({ query }: { query: string }) => {
+export const fetchMovies = async ({
+  query,
+}: {
+  query: string;
+}): Promise<Movie[]> => {
   const endpoint = query
     ? `${TMDB_CONFIG.BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
     : `${TMDB_CONFIG.BASE_URL}/discover/movie?sort_by=popularity.desc`;
+
   const response = await fetch(endpoint, {
     method: "GET",
     headers: TMDB_CONFIG.headers,
   });
 
   if (!response.ok) {
-    // @ts-ignore
-    throw new Error("Failed to fetch movies", response.statusText);
+    throw new Error(`Failed to fetch movies: ${response.statusText}`);
   }
 
   const data = await response.json();
   return data.results;
 };
 
-// fetch(url, options)
-//   .then((res) => res.json())
-//   .then((json) => console.log(json))
-//   .catch((err) => console.error(err));
+export const fetchMovieDetails = async (
+  movieId: string
+): Promise<MovieDetails> => {
+  try {
+    const response = await fetch(
+      `${TMDB_CONFIG.BASE_URL}/movie/${movieId}?api_key=${TMDB_CONFIG.API_KEY}`,
+      {
+        method: "GET",
+        headers: TMDB_CONFIG.headers,
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch movie details: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching movie details:", error);
+    throw error;
+  }
+};
